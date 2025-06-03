@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR SOLAR SYSTEM</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script>
+        AFRAME.registerComponent('soundhandler', {
+            init: function () {
+                this.soundEl = document.querySelector('[sound]');
+                this.marker = document.querySelector('a-marker');
+                this.visible = false;
+            },
+            tick: function () {
+                if (this.marker.object3D.visible && !this.visible) {
+                    console.log("ding");
+                    this.soundEl.components.sound.stopSound();
+                    this.soundEl.components.sound.playSound();
+                    this.visible = true;
+                } else if (!this.marker.object3D.visible) {
+                    this.visible = false;
+                }
+            }
+        });
+        AFRAME.registerComponent('earth-orbit', {
+            schema: {
+                radius: {type: 'number', default: 1.5},  
+                speed: {type: 'number', default: 0.8}    
+            },
+            init: function () {
+                this.angle = 0;
+            },
+            tick: function (time, timeDelta) {
+                this.angle += this.data.speed * (timeDelta / 1000);
+                var x = Math.cos(this.angle) * this.data.radius;
+                var z = Math.sin(this.angle) * this.data.radius;
+                this.el.setAttribute('position', {x: x, y: 0, z: z});
+            }
+        });
+    </script>
+</head>
+<body>
+    <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
+        <a-assets>
+            <audio id="sound" src="audio/orbit-263953.mp3" preload="auto"></audio>
+        </a-assets>
+        
+        <a-marker preset="custom" type="pattern" url="pattern/pattern-gajah.patt">
+            <a-entity gltf-model="3d/the_sun.glb" scale="0.7 0.7 0.7" position="0 0 0">
+                <a-animation attribute="rotation"
+                             dur="20000"
+                             to="0 360 0"
+                             repeat="indefinite"
+                             easing="linear"></a-animation>
+            </a-entity>
+            <a-entity gltf-model="3d/earth.glb" scale="0.3 0.3 0.3" earth-orbit="radius: 1.5; speed: 0.8">
+                <a-animation attribute="rotation"
+                             dur="3000"
+                             to="0 360 0"
+                             repeat="indefinite"
+                             easing="linear"></a-animation>
+            </a-entity>
+            
+            <a-sound src="audio/orbit-263953.mp3" autoplay="true" position="0 0 0"></a-sound>
+        </a-marker>
+        
+        <a-entity sound="src: #sound" autoplay="false"></a-entity>
+        <a-entity camera></a-entity>
+    </a-scene>
+</body>
+</html>
